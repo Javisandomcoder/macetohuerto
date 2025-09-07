@@ -1,0 +1,42 @@
+# Flutter/Dart
+.dart_tool/
+.packages
+.pub/
+build/
+coverage/
+.melos_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.flutter-versions
+.idea/
+.vscode/
+
+# Android
+android/.gradle/
+android/app/build/
+*.iml
+.gradle/
+local.properties
+
+# iOS
+ios/Pods/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/.symlinks/
+ios/Runner/GeneratedPluginRegistrant.*
+
+# Web
+web/.dart_tool/
+web/.firebase/
+
+# Generated files
+*.lock
+pubspec.lock
+
+# Logs
+*.log
+
+# Misc
+*.tmp
+*.swp
+*.DS_Store
