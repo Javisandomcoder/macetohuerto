@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:macetohuerto/l10n/app_localizations.dart';
 import 'pages/home_page.dart';
+import 'providers/theme_provider.dart';
+import 'services/notification_service.dart';
+import 'theme.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  final notifier = NotificationService();
+  notifier.init();
   runApp(const ProviderScope(child: MacetohuertoApp()));
 }
 
@@ -11,13 +19,27 @@ class MacetohuertoApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    // Watch theme mode from provider
+    return Consumer(builder: (context, ref, _) {
+      final themeMode = ref.watch(themeModeProvider);
+      return MaterialApp(
       title: 'Macetohuerto',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF2E7D32)),
-        useMaterial3: true,
-      ),
+      onGenerateTitle: (ctx) => AppLocalizations.of(ctx)!.appTitle,
+      theme: buildLightTheme(const Color(0xFF2E7D32)),
+      darkTheme: buildDarkTheme(const Color(0xFF2E7D32)),
+      themeMode: themeMode,
+      localizationsDelegates: [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('es'),
+        Locale('en'),
+      ],
       home: const HomePage(),
     );
+    });
   }
 }

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:macetohuerto/l10n/app_localizations.dart';
 import 'package:uuid/uuid.dart';
 import '../models/plant.dart';
 import '../providers/plant_provider.dart';
+import '../providers/settings_provider.dart';
+import '../services/notification_service.dart';
 
 class PlantFormPage extends ConsumerStatefulWidget {
   final Plant? initial;
@@ -20,6 +23,10 @@ class _PlantFormPageState extends ConsumerState<PlantFormPage> {
   final _locationCtrl = TextEditingController();
   final _notesCtrl = TextEditingController();
   DateTime? _plantedAt;
+  bool _reminderEnabled = false;
+  bool _reminderPaused = false;
+  int _intervalDays = 2;
+  TimeOfDay _timeOfDay = const TimeOfDay(hour: 9, minute: 0);
 
   @override
   void initState() {
@@ -31,6 +38,15 @@ class _PlantFormPageState extends ConsumerState<PlantFormPage> {
       _locationCtrl.text = p.location ?? '';
       _notesCtrl.text = p.notes ?? '';
       _plantedAt = p.plantedAt;
+      _reminderEnabled = p.reminderEnabled;
+      _reminderPaused = p.reminderPaused;
+      _intervalDays = p.wateringIntervalDays ?? _intervalDays;
+      if (p.wateringTime != null && p.wateringTime!.contains(':')) {
+        final parts = p.wateringTime!.split(':');
+        final h = int.tryParse(parts[0]) ?? 9;
+        final m = int.tryParse(parts[1]) ?? 0;
+        _timeOfDay = TimeOfDay(hour: h, minute: m);
+      }
     }
   }
 
@@ -46,8 +62,9 @@ class _PlantFormPageState extends ConsumerState<PlantFormPage> {
   @override
   Widget build(BuildContext context) {
     final isEdit = widget.initial != null;
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: Text(isEdit ? 'Editar planta' : 'Nueva planta')),
+      appBar: AppBar(title: Text(isEdit ? l10n.plantEdit : l10n.plantNew)),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -55,26 +72,26 @@ class _PlantFormPageState extends ConsumerState<PlantFormPage> {
           children: [
             TextFormField(
               controller: _nameCtrl,
-              decoration: const InputDecoration(labelText: 'Nombre *'),
-              validator: (v) => (v == null || v.trim().isEmpty) ? 'Obligatorio' : null,
+              decoration: InputDecoration(labelText: l10n.nameLabel),
+              validator: (v) => (v == null || v.trim().isEmpty) ? l10n.required : null,
             ),
             const SizedBox(height: 12),
             TextFormField(
               controller: _speciesCtrl,
-              decoration: const InputDecoration(labelText: 'Especie/Variedad'),
+              decoration: InputDecoration(labelText: l10n.speciesLabel),
             ),
             const SizedBox(height: 12),
             TextFormField(
               controller: _locationCtrl,
-              decoration: const InputDecoration(labelText: 'Ubicación'),
+              decoration: InputDecoration(labelText: l10n.locationLabel),
             ),
             const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(
                   child: Text(_plantedAt == null
-                      ? 'Fecha de plantación: —'
-                      : 'Plantada: ${DateFormat('dd/MM/yyyy').format(_plantedAt!)}'),
+                      ? '${l10n.plantedLabel}: —'
+                      : '${l10n.plantedLabel}: ${DateFormat('dd/MM/yyyy').format(_plantedAt!)}'),
                 ),
                 TextButton(
                   onPressed: () async {
@@ -89,16 +106,58 @@ class _PlantFormPageState extends ConsumerState<PlantFormPage> {
                       setState(() => _plantedAt = picked);
                     }
                   },
-                  child: const Text('Elegir fecha'),
+                  child: Text(l10n.pickDate),
                 )
               ],
             ),
             const SizedBox(height: 12),
             TextFormField(
               controller: _notesCtrl,
-              decoration: const InputDecoration(labelText: 'Notas'),
+              decoration: InputDecoration(labelText: l10n.notesLabel),
               maxLines: 3,
             ),
+            const SizedBox(height: 24),
+            Text('Recordatorio de riego', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 8),
+            SwitchListTile(
+              value: _reminderEnabled,
+              title: const Text('Activar recordatorio'),
+              onChanged: (v) => setState(() => _reminderEnabled = v),
+            ),
+            if (_reminderEnabled) ...[
+              Row(
+                children: [
+                  Expanded(
+                    child: DropdownButtonFormField<int>(
+                      initialValue: _intervalDays,
+                      decoration: const InputDecoration(labelText: 'Cada (días)'),
+                      items: const [1, 2, 3, 4, 5, 7, 10, 14, 21, 30]
+                          .map((d) => DropdownMenuItem(value: d, child: Text('$d')))
+                          .toList(),
+                      onChanged: (v) => setState(() => _intervalDays = v ?? _intervalDays),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: InkWell(
+                      onTap: () async {
+                        final picked = await showTimePicker(context: context, initialTime: _timeOfDay);
+                        if (picked != null) setState(() => _timeOfDay = picked);
+                      },
+                      child: InputDecorator(
+                        decoration: const InputDecoration(labelText: 'Hora'),
+                        child: Text(_timeOfDay.format(context)),
+                      ),
+                    ),
+                  )
+                ],
+              ),
+              SwitchListTile(
+                value: _reminderPaused,
+                title: const Text('Pausar recordatorio (planta)'),
+                onChanged: (v) => setState(() => _reminderPaused = v),
+              ),
+            ],
             const SizedBox(height: 24),
             FilledButton.icon(
               onPressed: () async {
@@ -111,16 +170,34 @@ class _PlantFormPageState extends ConsumerState<PlantFormPage> {
                   location: _locationCtrl.text.trim().isEmpty ? null : _locationCtrl.text.trim(),
                   plantedAt: _plantedAt,
                   notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
+                  reminderEnabled: _reminderEnabled,
+                  reminderPaused: _reminderPaused,
+                  wateringIntervalDays: _reminderEnabled ? _intervalDays : null,
+                  wateringTime: _reminderEnabled
+                      ? '${_timeOfDay.hour.toString().padLeft(2, '0')}:${_timeOfDay.minute.toString().padLeft(2, '0')}'
+                      : null,
                 );
                 if (widget.initial == null) {
                   await ref.read(plantsProvider.notifier).add(plant);
                 } else {
                   await ref.read(plantsProvider.notifier).update(plant);
                 }
+                // schedule/cancel
+                final settings = ref.read(settingsProvider);
+                final notifier = NotificationService();
+                if (plant.reminderEnabled && !plant.reminderPaused && !settings.remindersPaused) {
+                  await notifier.scheduleNextForPlant(
+                    plant: plant,
+                    globallyPaused: settings.remindersPaused,
+                    pausedUntil: settings.pausedUntil,
+                  );
+                } else {
+                  await notifier.cancelForPlant(plant);
+                }
                 if (context.mounted) Navigator.pop(context);
               },
               icon: const Icon(Icons.save),
-              label: Text(isEdit ? 'Guardar cambios' : 'Crear planta'),
+              label: Text(isEdit ? l10n.saveChanges : l10n.createPlant),
             )
           ],
         ),

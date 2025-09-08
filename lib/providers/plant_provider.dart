@@ -7,6 +7,20 @@ final plantRepositoryProvider = Provider<PlantRepository>((ref) {
   return PlantRepository();
 });
 
+/// Query de búsqueda simple para filtrar plantas en memoria
+final searchQueryProvider = StateProvider<String>((ref) => '');
+
+/// Opciones de ordenación de la lista
+enum SortOption { nameAsc, nameDesc, dateDesc, dateAsc }
+
+final sortOptionProvider = StateProvider<SortOption>((ref) => SortOption.nameAsc);
+
+/// Filtro por ubicación (null o vacío = todas)
+final locationFilterProvider = StateProvider<String?>((ref) => null);
+
+/// Filtro por especie (null o vacío = todas)
+final speciesFilterProvider = StateProvider<String?>((ref) => null);
+
 final plantsProvider =
     StateNotifierProvider<PlantsNotifier, AsyncValue<List<Plant>>>((ref) {
   final repo = ref.watch(plantRepositoryProvider);
@@ -16,8 +30,15 @@ final plantsProvider =
 class PlantRepository {
   static const _key = 'plants_json';
 
+  final SharedPreferences? _injectedPrefs;
+  PlantRepository({SharedPreferences? prefs}) : _injectedPrefs = prefs;
+
+  Future<SharedPreferences> _prefs() async {
+    return _injectedPrefs ?? await SharedPreferences.getInstance();
+  }
+
   Future<List<Plant>> load() async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await _prefs();
     final raw = prefs.getString(_key);
     if (raw == null || raw.isEmpty) return [];
     try {
@@ -31,7 +52,7 @@ class PlantRepository {
   }
 
   Future<void> save(List<Plant> plants) async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await _prefs();
     final raw = jsonEncode(plants.map((e) => e.toJson()).toList());
     await prefs.setString(_key, raw);
   }

@@ -5,6 +5,12 @@ class Plant {
   final String? location;
   final DateTime? plantedAt;
   final String? notes;
+  // Reminder fields
+  final bool reminderEnabled;
+  final int? wateringIntervalDays; // e.g., 1, 2, 3, 7, 14
+  final String? wateringTime; // 'HH:mm'
+  final bool reminderPaused; // individual pause
+  final DateTime? lastWateredAt;
 
   Plant({
     required this.id,
@@ -13,6 +19,11 @@ class Plant {
     this.location,
     this.plantedAt,
     this.notes,
+    this.reminderEnabled = false,
+    this.wateringIntervalDays,
+    this.wateringTime,
+    this.reminderPaused = false,
+    this.lastWateredAt,
   });
 
   Plant copyWith({
@@ -22,6 +33,11 @@ class Plant {
     String? location,
     DateTime? plantedAt,
     String? notes,
+    bool? reminderEnabled,
+    int? wateringIntervalDays,
+    String? wateringTime,
+    bool? reminderPaused,
+    DateTime? lastWateredAt,
   }) {
     return Plant(
       id: id ?? this.id,
@@ -30,6 +46,11 @@ class Plant {
       location: location ?? this.location,
       plantedAt: plantedAt ?? this.plantedAt,
       notes: notes ?? this.notes,
+      reminderEnabled: reminderEnabled ?? this.reminderEnabled,
+      wateringIntervalDays: wateringIntervalDays ?? this.wateringIntervalDays,
+      wateringTime: wateringTime ?? this.wateringTime,
+      reminderPaused: reminderPaused ?? this.reminderPaused,
+      lastWateredAt: lastWateredAt ?? this.lastWateredAt,
     );
   }
 
@@ -43,6 +64,13 @@ class Plant {
           ? DateTime.tryParse(json['plantedAt'] as String)
           : null,
       notes: json['notes'] as String?,
+      reminderEnabled: (json['reminderEnabled'] as bool?) ?? false,
+      wateringIntervalDays: (json['wateringIntervalDays'] as num?)?.toInt(),
+      wateringTime: json['wateringTime'] as String?,
+      reminderPaused: (json['reminderPaused'] as bool?) ?? false,
+      lastWateredAt: json['lastWateredAt'] != null
+          ? DateTime.tryParse(json['lastWateredAt'] as String)
+          : null,
     );
   }
 
@@ -53,5 +81,10 @@ class Plant {
         'location': location,
         'plantedAt': plantedAt?.toIso8601String(),
         'notes': notes,
+        'reminderEnabled': reminderEnabled,
+        'wateringIntervalDays': wateringIntervalDays,
+        'wateringTime': wateringTime,
+        'reminderPaused': reminderPaused,
+        'lastWateredAt': lastWateredAt?.toIso8601String(),
       };
 }
