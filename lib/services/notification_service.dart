@@ -1,6 +1,5 @@
 import 'dart:math';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
@@ -21,12 +20,8 @@ class NotificationService {
     if (_initialized) return;
     // Timezone
     tz.initializeTimeZones();
-    try {
-      final String localName = await FlutterNativeTimezone.getLocalTimezone();
-      tz.setLocalLocation(tz.getLocation(localName));
-    } catch (_) {
-      // Fallback: keep current tz.local
-    }
+    // Using default tz.local; explicit IANA timezone fetch avoided to keep
+    // compatibility with recent Android Gradle Plugin without extra plugins.
 
     // Platform init (Android + iOS/macOS)
     const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
