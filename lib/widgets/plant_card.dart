@@ -23,6 +23,7 @@ class PlantCard extends ConsumerWidget {
           final result = await Navigator.of(context).push(
             fadeScaleRoute(PlantDetailPage(plant: plant)),
           );
+          if (!rootScaffoldContext.mounted) return;
           // Use a stable context (rootScaffoldContext) after awaiting navigation
           final l10n = AppLocalizations.of(rootScaffoldContext)!;
           if (result is Map && result['event'] == 'deleted') {

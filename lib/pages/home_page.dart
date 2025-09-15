@@ -72,6 +72,7 @@ class HomePage extends ConsumerWidget {
             onPressed: () async {
               await NotificationService().ensurePermissions();
               await NotificationService().scheduleTestInSeconds(10);
+              if (!context.mounted) return;
               FeedbackOverlay.show(context, text: 'Notificación de prueba en 10s');
             },
             icon: const Icon(Icons.notifications_active_outlined),
@@ -113,7 +114,7 @@ class HomePage extends ConsumerWidget {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Theme.of(context).colorScheme.primary.withOpacity(0.06),
+                      Theme.of(context).colorScheme.primary.withValues(alpha: 0.06),
                       Colors.transparent,
                     ],
                   ),

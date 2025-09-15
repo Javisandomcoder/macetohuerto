@@ -21,7 +21,7 @@ ThemeData buildLightTheme(Color seed) {
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: base.colorScheme.surfaceContainerHighest.withOpacity(0.20),
+      fillColor: base.colorScheme.surfaceContainerHighest.withValues(alpha: 0.20),
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
       focusedBorder: OutlineInputBorder(
@@ -66,7 +66,7 @@ ThemeData buildDarkTheme(Color seed) {
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: base.colorScheme.surfaceContainerHighest.withOpacity(0.12),
+      fillColor: base.colorScheme.surfaceContainerHighest.withValues(alpha: 0.12),
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
       focusedBorder: OutlineInputBorder(
