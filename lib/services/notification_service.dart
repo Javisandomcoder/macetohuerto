@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
@@ -20,8 +21,12 @@ class NotificationService {
     if (_initialized) return;
     // Timezone
     tz.initializeTimeZones();
-    final String localName = tz.local.name; // uses device default
-    tz.setLocalLocation(tz.getLocation(localName));
+    try {
+      final String localName = await FlutterTimezone.getLocalTimezone();
+      tz.setLocalLocation(tz.getLocation(localName));
+    } catch (_) {
+      // Fallback: keep current tz.local
+    }
 
     // Platform init (Android + iOS/macOS)
     const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -176,8 +181,10 @@ class NotificationService {
         payload: plant.id,
       );
     }
-    // Prefer inexact to avoid exact alarm restrictions on Android 12+
-    await schedule(AndroidScheduleMode.inexactAllowWhileIdle);
+    // Choose exact if allowed; fallback to inexact otherwise
+    final android = _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    final canExact = await android?.canScheduleExactNotifications() ?? false;
+    await schedule(canExact ? AndroidScheduleMode.exactAllowWhileIdle : AndroidScheduleMode.inexactAllowWhileIdle);
   }
 
   Future<void> scheduleTestInSeconds(int seconds) async {
@@ -220,7 +227,9 @@ class NotificationService {
       );
     }
 
-    await schedule(AndroidScheduleMode.inexactAllowWhileIdle);
+    final android = _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    final canExact = await android?.canScheduleExactNotifications() ?? false;
+    await schedule(canExact ? AndroidScheduleMode.exactAllowWhileIdle : AndroidScheduleMode.inexactAllowWhileIdle);
 
     // Disparo inmediato adicional para verificar canal/permiso (visible al instante)
     await _plugin.show(
