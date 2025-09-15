@@ -31,5 +31,42 @@
   "speciesVariety": "Species/Variety",
   "plantedDate": "Planted",
   "notes": "Notes",
-  "themeToggleTooltip": "Toggle theme"
+  "themeToggleTooltip": "Toggle theme",
+  "plantCreated": "Plant added",
+  "plantDeleted": "Plant deleted",
+  "plantUpdated": "Changes saved"
+  ,
+  "watering": "Watering",
+  "reminder": "Reminder",
+  "enabled": "Enabled",
+  "disabled": "Disabled",
+  "intervalDays": "Interval (days)",
+  "time": "Time",
+  "paused": "Paused",
+  "yes": "Yes",
+  "no": "No",
+  "lastWatered": "Last watered",
+  "nextWatering": "Next watering",
+  "globallyPaused": "Paused"
+  ,
+  "undo": "Undo"
+  ,
+  "plantCreatedWithName": "Plant \"{name}\" added",
+  "@plantCreatedWithName": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "plantDeletedWithName": "Plant \"{name}\" deleted",
+  "@plantDeletedWithName": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "plantUpdatedWithName": "Changes saved for \"{name}\"",
+  "@plantUpdatedWithName": {
+    "placeholders": {
+      "name": {}
+    }
+  }
 }

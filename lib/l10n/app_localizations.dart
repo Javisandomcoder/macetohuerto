@@ -295,6 +295,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Toggle theme'**
   String get themeToggleTooltip;
+
+  /// No description provided for @plantCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Plant added'**
+  String get plantCreated;
+
+  /// No description provided for @plantDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Plant deleted'**
+  String get plantDeleted;
+
+  /// No description provided for @plantUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Changes saved'**
+  String get plantUpdated;
+
+  /// No description provided for @watering.
+  ///
+  /// In en, this message translates to:
+  /// **'Watering'**
+  String get watering;
+
+  /// No description provided for @reminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder'**
+  String get reminder;
+
+  /// No description provided for @enabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Enabled'**
+  String get enabled;
+
+  /// No description provided for @disabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Disabled'**
+  String get disabled;
+
+  /// No description provided for @intervalDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Interval (days)'**
+  String get intervalDays;
+
+  /// No description provided for @time.
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get time;
+
+  /// No description provided for @paused.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused'**
+  String get paused;
+
+  /// No description provided for @yes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get yes;
+
+  /// No description provided for @no.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get no;
+
+  /// No description provided for @lastWatered.
+  ///
+  /// In en, this message translates to:
+  /// **'Last watered'**
+  String get lastWatered;
+
+  /// No description provided for @nextWatering.
+  ///
+  /// In en, this message translates to:
+  /// **'Next watering'**
+  String get nextWatering;
+
+  /// No description provided for @globallyPaused.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused'**
+  String get globallyPaused;
+
+  /// No description provided for @undo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get undo;
+
+  /// No description provided for @plantCreatedWithName.
+  ///
+  /// In en, this message translates to:
+  /// **'Plant \"{name}\" added'**
+  String plantCreatedWithName(Object name);
+
+  /// No description provided for @plantDeletedWithName.
+  ///
+  /// In en, this message translates to:
+  /// **'Plant \"{name}\" deleted'**
+  String plantDeletedWithName(Object name);
+
+  /// No description provided for @plantUpdatedWithName.
+  ///
+  /// In en, this message translates to:
+  /// **'Changes saved for \"{name}\"'**
+  String plantUpdatedWithName(Object name);
 }
 
 class _AppLocalizationsDelegate

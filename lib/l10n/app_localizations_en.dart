@@ -107,4 +107,67 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get themeToggleTooltip => 'Toggle theme';
+
+  @override
+  String get plantCreated => 'Plant added';
+
+  @override
+  String get plantDeleted => 'Plant deleted';
+
+  @override
+  String get plantUpdated => 'Changes saved';
+
+  @override
+  String get watering => 'Watering';
+
+  @override
+  String get reminder => 'Reminder';
+
+  @override
+  String get enabled => 'Enabled';
+
+  @override
+  String get disabled => 'Disabled';
+
+  @override
+  String get intervalDays => 'Interval (days)';
+
+  @override
+  String get time => 'Time';
+
+  @override
+  String get paused => 'Paused';
+
+  @override
+  String get yes => 'Yes';
+
+  @override
+  String get no => 'No';
+
+  @override
+  String get lastWatered => 'Last watered';
+
+  @override
+  String get nextWatering => 'Next watering';
+
+  @override
+  String get globallyPaused => 'Paused';
+
+  @override
+  String get undo => 'Undo';
+
+  @override
+  String plantCreatedWithName(Object name) {
+    return 'Plant \"$name\" added';
+  }
+
+  @override
+  String plantDeletedWithName(Object name) {
+    return 'Plant \"$name\" deleted';
+  }
+
+  @override
+  String plantUpdatedWithName(Object name) {
+    return 'Changes saved for \"$name\"';
+  }
 }

@@ -8,6 +8,7 @@ import '../services/notification_service.dart';
 import '../utils/transitions.dart';
 import '../widgets/plant_card.dart';
 import 'plant_form_page.dart';
+import '../utils/feedback_overlay.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -65,6 +66,15 @@ class HomePage extends ConsumerWidget {
             tooltip: l10n.themeToggleTooltip,
             onPressed: () => ref.read(themeModeProvider.notifier).toggle(),
             icon: const Icon(Icons.brightness_6_outlined),
+          ),
+          IconButton(
+            tooltip: 'Probar notificación',
+            onPressed: () async {
+              await NotificationService().ensurePermissions();
+              await NotificationService().scheduleTestInSeconds(10);
+              FeedbackOverlay.show(context, text: 'Notificación de prueba en 10s');
+            },
+            icon: const Icon(Icons.notifications_active_outlined),
           ),
           IconButton(
             tooltip: settings.remindersPaused ? 'Reanudar recordatorios' : 'Pausar recordatorios',
@@ -190,66 +200,42 @@ class HomePage extends ConsumerWidget {
                 child: Row(
                   children: [
                     Expanded(
-                      child: InputDecorator(
+                      child: DropdownButtonFormField<SortOption>(
+                        initialValue: sort,
+                        isExpanded: true,
                         decoration: InputDecoration(
                           labelText: l10n.orderBy,
                           border: const OutlineInputBorder(),
                         ),
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton<SortOption>(
-                            value: sort,
-                            isExpanded: true,
-                            items: [
-                              DropdownMenuItem(
-                                value: SortOption.nameAsc,
-                                child: Text(l10n.nameAZ),
-                              ),
-                              DropdownMenuItem(
-                                value: SortOption.nameDesc,
-                                child: Text(l10n.nameZA),
-                              ),
-                              DropdownMenuItem(
-                                value: SortOption.dateDesc,
-                                child: Text(l10n.dateNewest),
-                              ),
-                              DropdownMenuItem(
-                                value: SortOption.dateAsc,
-                                child: Text(l10n.dateOldest),
-                              ),
-                            ],
-                            onChanged: (v) {
-                              if (v != null) {
-                                ref.read(sortOptionProvider.notifier).state = v;
-                              }
-                            },
-                          ),
-                        ),
+                        items: [
+                          DropdownMenuItem(value: SortOption.nameAsc, child: Text(l10n.nameAZ)),
+                          DropdownMenuItem(value: SortOption.nameDesc, child: Text(l10n.nameZA)),
+                          DropdownMenuItem(value: SortOption.dateDesc, child: Text(l10n.dateNewest)),
+                          DropdownMenuItem(value: SortOption.dateAsc, child: Text(l10n.dateOldest)),
+                        ],
+                        onChanged: (v) {
+                          if (v != null) {
+                            ref.read(sortOptionProvider.notifier).state = v;
+                          }
+                        },
                       ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: InputDecorator(
+                      child: DropdownButtonFormField<String?>(
+                        initialValue: (locationFilter ?? '').isEmpty ? null : locationFilter,
+                        isExpanded: true,
                         decoration: InputDecoration(
                           labelText: l10n.location,
-                          border: OutlineInputBorder(),
+                          border: const OutlineInputBorder(),
                         ),
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton<String?>(
-                            value: (locationFilter ?? '').isEmpty ? null : locationFilter,
-                            hint: Text(l10n.all),
-                            isExpanded: true,
-                            items: [
-                              DropdownMenuItem<String?>(value: null, child: Text(l10n.all)),
-                              ...locations.map((loc) => DropdownMenuItem<String?>(
-                                    value: loc,
-                                    child: Text(loc),
-                                  )),
-                            ],
-                            onChanged: (v) {
-                              ref.read(locationFilterProvider.notifier).state = v;
-                            },
-                          ),
-                        ),
+                        items: [
+                          DropdownMenuItem<String?>(value: null, child: Text(l10n.all)),
+                          ...locations.map((loc) => DropdownMenuItem<String?>(value: loc, child: Text(loc))),
+                        ],
+                        onChanged: (v) {
+                          ref.read(locationFilterProvider.notifier).state = v;
+                        },
                       ),
                     ),
                   ],
@@ -260,28 +246,20 @@ class HomePage extends ConsumerWidget {
                 child: Row(
                   children: [
                     Expanded(
-                      child: InputDecorator(
+                      child: DropdownButtonFormField<String?>(
+                        initialValue: (speciesFilter ?? '').isEmpty ? null : speciesFilter,
+                        isExpanded: true,
                         decoration: InputDecoration(
                           labelText: l10n.species,
                           border: const OutlineInputBorder(),
                         ),
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton<String?>(
-                            value: (speciesFilter ?? '').isEmpty ? null : speciesFilter,
-                            hint: Text(l10n.all),
-                            isExpanded: true,
-                            items: [
-                              DropdownMenuItem<String?>(value: null, child: Text(l10n.all)),
-                              ...species.map((sp) => DropdownMenuItem<String?>(
-                                    value: sp,
-                                    child: Text(sp),
-                                  )),
-                            ],
-                            onChanged: (v) {
-                              ref.read(speciesFilterProvider.notifier).state = v;
-                            },
-                          ),
-                        ),
+                        items: [
+                          DropdownMenuItem<String?>(value: null, child: Text(l10n.all)),
+                          ...species.map((sp) => DropdownMenuItem<String?>(value: sp, child: Text(sp))),
+                        ],
+                        onChanged: (v) {
+                          ref.read(speciesFilterProvider.notifier).state = v;
+                        },
                       ),
                     ),
                   ],
@@ -297,16 +275,17 @@ class HomePage extends ConsumerWidget {
                 )
               else
                 Expanded(
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 250),
-                    switchInCurve: Curves.easeOutCubic,
-                    switchOutCurve: Curves.easeInCubic,
-                    child: ListView.builder(
-                      key: ValueKey(filtered.map((e) => e.id).join(',')),
-                      itemCount: filtered.length,
-                      itemBuilder: (context, index) => PlantCard(
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 250),
+                      switchInCurve: Curves.easeOutCubic,
+                      switchOutCurve: Curves.easeInCubic,
+                      child: ListView.builder(
+                        key: ValueKey(filtered.map((e) => e.id).join(',')),
+                        itemCount: filtered.length,
+                        itemBuilder: (context, index) => PlantCard(
                         key: ValueKey(filtered[index].id),
                         plant: filtered[index],
+                        rootScaffoldContext: context,
                       ),
                     ),
                   ),
@@ -322,6 +301,8 @@ class HomePage extends ConsumerWidget {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
           await Navigator.of(context).push(fadeScaleRoute(const PlantFormPage()));
+          // Haptic feedback is now triggered on the save button itself
+          // to ensure the user feels it at the moment of action.
         },
         label: Text(l10n.addPlant),
         icon: const Icon(Icons.add),

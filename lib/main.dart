@@ -7,10 +7,11 @@ import 'providers/theme_provider.dart';
 import 'services/notification_service.dart';
 import 'theme.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final notifier = NotificationService();
-  notifier.init();
+  await NotificationService().init();
+  // Solicita permisos de notificación al inicio para evitar silencios
+  await NotificationService().ensurePermissions();
   runApp(const ProviderScope(child: MacetohuertoApp()));
 }
 

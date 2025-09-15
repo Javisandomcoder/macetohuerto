@@ -21,8 +21,9 @@ ThemeData buildLightTheme(Color seed) {
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: base.colorScheme.surfaceVariant.withOpacity(0.20),
+      fillColor: base.colorScheme.surfaceContainerHighest.withOpacity(0.20),
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide(color: base.colorScheme.primary, width: 1.6),
@@ -65,8 +66,9 @@ ThemeData buildDarkTheme(Color seed) {
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: base.colorScheme.surfaceVariant.withOpacity(0.12),
+      fillColor: base.colorScheme.surfaceContainerHighest.withOpacity(0.12),
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide(color: base.colorScheme.primary, width: 1.6),

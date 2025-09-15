@@ -3,10 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:macetohuerto/l10n/app_localizations.dart';
 import 'package:uuid/uuid.dart';
+import 'package:flutter/services.dart';
 import '../models/plant.dart';
 import '../providers/plant_provider.dart';
 import '../providers/settings_provider.dart';
 import '../services/notification_service.dart';
+import '../utils/input_formatters.dart';
 
 class PlantFormPage extends ConsumerStatefulWidget {
   final Plant? initial;
@@ -72,17 +74,23 @@ class _PlantFormPageState extends ConsumerState<PlantFormPage> {
           children: [
             TextFormField(
               controller: _nameCtrl,
+              textCapitalization: TextCapitalization.sentences,
+              inputFormatters: const [CapitalizeFirstInputFormatter()],
               decoration: InputDecoration(labelText: l10n.nameLabel),
               validator: (v) => (v == null || v.trim().isEmpty) ? l10n.required : null,
             ),
             const SizedBox(height: 12),
             TextFormField(
               controller: _speciesCtrl,
+              textCapitalization: TextCapitalization.sentences,
+              inputFormatters: const [CapitalizeFirstInputFormatter()],
               decoration: InputDecoration(labelText: l10n.speciesLabel),
             ),
             const SizedBox(height: 12),
             TextFormField(
               controller: _locationCtrl,
+              textCapitalization: TextCapitalization.sentences,
+              inputFormatters: const [CapitalizeFirstInputFormatter()],
               decoration: InputDecoration(labelText: l10n.locationLabel),
             ),
             const SizedBox(height: 12),
@@ -113,6 +121,8 @@ class _PlantFormPageState extends ConsumerState<PlantFormPage> {
             const SizedBox(height: 12),
             TextFormField(
               controller: _notesCtrl,
+              textCapitalization: TextCapitalization.sentences,
+              inputFormatters: const [CapitalizeFirstInputFormatter()],
               decoration: InputDecoration(labelText: l10n.notesLabel),
               maxLines: 3,
             ),
@@ -161,6 +171,8 @@ class _PlantFormPageState extends ConsumerState<PlantFormPage> {
             const SizedBox(height: 24),
             FilledButton.icon(
               onPressed: () async {
+                // Haptic feedback on action confirmation
+                HapticFeedback.mediumImpact();
                 if (!_formKey.currentState!.validate()) return;
                 final id = widget.initial?.id ?? const Uuid().v4();
                 final plant = Plant(
@@ -194,7 +206,12 @@ class _PlantFormPageState extends ConsumerState<PlantFormPage> {
                 } else {
                   await notifier.cancelForPlant(plant);
                 }
-                if (context.mounted) Navigator.pop(context);
+                if (context.mounted) {
+                  Navigator.pop(context, {
+                    'event': isEdit ? 'updated' : 'created',
+                    'name': plant.name,
+                  });
+                }
               },
               icon: const Icon(Icons.save),
               label: Text(isEdit ? l10n.saveChanges : l10n.createPlant),

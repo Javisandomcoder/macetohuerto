@@ -107,4 +107,67 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get themeToggleTooltip => 'Cambiar tema';
+
+  @override
+  String get plantCreated => 'Planta añadida';
+
+  @override
+  String get plantDeleted => 'Planta eliminada';
+
+  @override
+  String get plantUpdated => 'Cambios guardados';
+
+  @override
+  String get watering => 'Riego';
+
+  @override
+  String get reminder => 'Recordatorio';
+
+  @override
+  String get enabled => 'Activado';
+
+  @override
+  String get disabled => 'Desactivado';
+
+  @override
+  String get intervalDays => 'Intervalo (días)';
+
+  @override
+  String get time => 'Hora';
+
+  @override
+  String get paused => 'Pausado';
+
+  @override
+  String get yes => 'Sí';
+
+  @override
+  String get no => 'No';
+
+  @override
+  String get lastWatered => 'Último riego';
+
+  @override
+  String get nextWatering => 'Próximo riego';
+
+  @override
+  String get globallyPaused => 'En pausa';
+
+  @override
+  String get undo => 'Deshacer';
+
+  @override
+  String plantCreatedWithName(Object name) {
+    return 'Planta \"$name\" añadida';
+  }
+
+  @override
+  String plantDeletedWithName(Object name) {
+    return 'Planta \"$name\" eliminada';
+  }
+
+  @override
+  String plantUpdatedWithName(Object name) {
+    return 'Cambios guardados en \"$name\"';
+  }
 }
