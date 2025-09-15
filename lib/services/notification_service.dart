@@ -4,6 +4,7 @@ import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
 import '../models/plant.dart';
+import '../utils/feedback_overlay.dart';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -221,10 +222,18 @@ class NotificationService {
         payload: 'test',
       );
     }
-
     final android = _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
     final canExact = await android?.canScheduleExactNotifications() ?? false;
     await schedule(canExact ? AndroidScheduleMode.exactAllowWhileIdle : AndroidScheduleMode.inexactAllowWhileIdle);
+
+    // Debug: show how many are pending and the scheduled time.
+    try {
+      final pending = await _plugin.pendingNotificationRequests();
+      // Best-effort feedback: requires a BuildContext, so we only log if available.
+      // Callers can use debugShowPending from UI.
+      // ignore: avoid_print
+      print('Scheduled test for: ' + when.toString() + ' | pending: ' + pending.length.toString());
+    } catch (_) {}
 
     // Disparo inmediato adicional para verificar canal/permiso (visible al instante)
     await _plugin.show(
@@ -234,5 +243,20 @@ class NotificationService {
       details,
       payload: 'test-immediate-2',
     );
+  }
+
+  Future<void> debugShowPending(BuildContext context) async {
+    final pending = await _plugin.pendingNotificationRequests();
+    final count = pending.length;
+    FeedbackOverlay.show(context, text: 'Pendientes: $count');
+  }
+
+  Future<void> openExactAlarmSettingsIfNeeded() async {
+    final android = _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    if (android == null) return;
+    final canExact = await android.canScheduleExactNotifications() ?? false;
+    if (!canExact) {
+      await android.requestExactAlarmsPermission();
+    }
   }
 }

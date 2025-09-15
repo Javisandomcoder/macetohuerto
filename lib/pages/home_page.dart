@@ -78,6 +78,13 @@ class HomePage extends ConsumerWidget {
             icon: const Icon(Icons.notifications_active_outlined),
           ),
           IconButton(
+            tooltip: 'Pendientes',
+            onPressed: () async {
+              await NotificationService().debugShowPending(context);
+            },
+            icon: const Icon(Icons.list_alt_outlined),
+          ),
+          IconButton(
             tooltip: settings.remindersPaused ? 'Reanudar recordatorios' : 'Pausar recordatorios',
             onPressed: () async {
               final next = !settings.remindersPaused;
@@ -96,6 +103,8 @@ class HomePage extends ConsumerWidget {
                     );
                   }
                 }
+                if (!context.mounted) return;
+                await NotificationService().debugShowPending(context);
               });
             },
             icon: Icon(settings.remindersPaused ? Icons.notifications_off : Icons.notifications_active_outlined),
