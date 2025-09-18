@@ -68,12 +68,13 @@ class HomePage extends ConsumerWidget {
             icon: const Icon(Icons.brightness_6_outlined),
           ),
           IconButton(
-            tooltip: 'Probar notificación',
+            tooltip: 'Probar notificacion',
             onPressed: () async {
               await NotificationService().ensurePermissions();
+              await NotificationService().openExactAlarmSettingsIfNeeded();
               await NotificationService().scheduleTestInSeconds(10);
               if (!context.mounted) return;
-              FeedbackOverlay.show(context, text: 'Notificación de prueba en 10s');
+              FeedbackOverlay.show(context, text: 'Notificacion de prueba en 10s');
             },
             icon: const Icon(Icons.notifications_active_outlined),
           ),

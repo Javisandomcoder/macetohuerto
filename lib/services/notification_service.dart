@@ -1,5 +1,7 @@
-import 'dart:math';
+﻿import 'dart:math';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
@@ -13,6 +15,7 @@ class NotificationService {
 
   final FlutterLocalNotificationsPlugin _plugin = FlutterLocalNotificationsPlugin();
   bool _initialized = false;
+  String? _timeZoneName;
   static const String _channelId = 'watering_reminders_v2';
   static const String _channelName = 'Watering Reminders';
   static const String _channelDescription = 'Reminders to water plants';
@@ -21,8 +24,16 @@ class NotificationService {
     if (_initialized) return;
     // Timezone
     tz.initializeTimeZones();
-    // Using default tz.local; explicit IANA timezone fetch avoided to keep
-    // compatibility with recent Android Gradle Plugin without extra plugins.
+    // Ajusta tz.local al huso horario del dispositivo; si falla usa un fallback con el offset actual.
+    try {
+      final timeZoneName = await FlutterNativeTimezone.getLocalTimezone();
+      tz.setLocalLocation(tz.getLocation(timeZoneName));
+      _timeZoneName = timeZoneName;
+    } catch (error) {
+      _applyLocalFallbackTimezone(error);
+    }
+    // ignore: avoid_print
+    print("NotificationService timezone: ${_timeZoneName ?? 'unknown'}");
 
     // Platform init (Android + iOS/macOS)
     const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -125,26 +136,27 @@ class NotificationService {
       return;
     }
 
-    final interval = plant.wateringIntervalDays ?? 2;
+    final interval = max(1, plant.wateringIntervalDays ?? 2);
     final timeStr = plant.wateringTime ?? '09:00';
     final parts = timeStr.split(':');
     final hh = int.tryParse(parts[0]) ?? 9;
     final mm = int.tryParse(parts[1]) ?? 0;
 
     final now = tz.TZDateTime.now(tz.local);
-    DateTime baseline = plant.lastWateredAt ?? plant.plantedAt ?? DateTime.now();
-    baseline = DateTime(baseline.year, baseline.month, baseline.day);
+    final baseSource = plant.lastWateredAt ?? plant.plantedAt;
+    final effectiveBase = baseSource != null
+        ? tz.TZDateTime.from(baseSource, tz.local)
+        : now;
 
-    int daysSince = DateTime(now.year, now.month, now.day).difference(baseline).inDays;
-    int k = (daysSince / max(1, interval)).ceil();
-    if (k < 1) k = 1;
-    var nextDate = baseline.add(Duration(days: k * interval));
-    var nextDt = tz.TZDateTime(tz.local, nextDate.year, nextDate.month, nextDate.day, hh, mm);
-    if (!nextDt.isAfter(now)) {
-      nextDate = nextDate.add(Duration(days: interval));
-      nextDt = tz.TZDateTime(tz.local, nextDate.year, nextDate.month, nextDate.day, hh, mm);
+    var nextDt = tz.TZDateTime(tz.local, effectiveBase.year, effectiveBase.month, effectiveBase.day, hh, mm);
+    if (!nextDt.isAfter(effectiveBase)) {
+      nextDt = nextDt.add(Duration(days: interval));
     }
-
+    while (!nextDt.isAfter(now)) {
+      nextDt = nextDt.add(Duration(days: interval));
+    }
+    // ignore: avoid_print
+    print('Programando recordatorio para  -> , ahora: , tz: ');
     const androidDetails = AndroidNotificationDetails(
       _channelId,
       _channelName,
@@ -177,10 +189,13 @@ class NotificationService {
         payload: plant.id,
       );
     }
-    // Choose exact if allowed; fallback to inexact otherwise
-    final android = _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-    final canExact = await android?.canScheduleExactNotifications() ?? false;
-    await schedule(canExact ? AndroidScheduleMode.exactAllowWhileIdle : AndroidScheduleMode.inexactAllowWhileIdle);
+    try {
+      await schedule(AndroidScheduleMode.exactAllowWhileIdle);
+    } catch (error) {
+      // ignore: avoid_print
+      print('Fallo al programar exacto: $error -> se usa modo inexacto');
+      await schedule(AndroidScheduleMode.inexactAllowWhileIdle);
+    }
   }
 
   Future<void> scheduleTestInSeconds(int seconds) async {
@@ -189,6 +204,8 @@ class NotificationService {
     if (!allowed) return;
     final now = tz.TZDateTime.now(tz.local);
     final when = now.add(Duration(seconds: seconds));
+    // ignore: avoid_print
+    print('Programando test en ${when.toIso8601String()}, tz: ${_timeZoneName ?? 'desconocido'}');
 
     const androidDetails = AndroidNotificationDetails(
       _channelId,
@@ -213,7 +230,7 @@ class NotificationService {
     Future<void> schedule(AndroidScheduleMode mode) async {
       await _plugin.zonedSchedule(
         999991,
-        'Notificación de prueba',
+        'Notificacion de prueba',
         'Esto es un test de recordatorio',
         when,
         details,
@@ -222,9 +239,13 @@ class NotificationService {
         payload: 'test',
       );
     }
-    final android = _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-    final canExact = await android?.canScheduleExactNotifications() ?? false;
-    await schedule(canExact ? AndroidScheduleMode.exactAllowWhileIdle : AndroidScheduleMode.inexactAllowWhileIdle);
+    try {
+      await schedule(AndroidScheduleMode.exactAllowWhileIdle);
+    } catch (error) {
+      // ignore: avoid_print
+      print('Fallo al programar exacto (test): $error -> se usa modo inexacto');
+      await schedule(AndroidScheduleMode.inexactAllowWhileIdle);
+    }
 
     // Debug: show how many are pending and the scheduled time.
     try {
@@ -232,13 +253,13 @@ class NotificationService {
       // Best-effort feedback: requires a BuildContext, so we only log if available.
       // Callers can use debugShowPending from UI.
       // ignore: avoid_print
-      print('Scheduled test for: ' + when.toString() + ' | pending: ' + pending.length.toString());
+      print('Scheduled test for: $when | pending: ${pending.length}');
     } catch (_) {}
 
     // Disparo inmediato adicional para verificar canal/permiso (visible al instante)
     await _plugin.show(
       999990,
-      'Notificación de prueba',
+      'Notificacion de prueba',
       'Mostrada inmediatamente',
       details,
       payload: 'test-immediate-2',
@@ -248,7 +269,28 @@ class NotificationService {
   Future<void> debugShowPending(BuildContext context) async {
     final pending = await _plugin.pendingNotificationRequests();
     final count = pending.length;
+    if (!context.mounted) return;
     FeedbackOverlay.show(context, text: 'Pendientes: $count');
+  }
+
+  void _applyLocalFallbackTimezone(Object error) {
+    try {
+      final now = DateTime.now();
+      final offset = now.timeZoneOffset;
+      final abbreviation = now.timeZoneName.isEmpty ? 'Local' : now.timeZoneName;
+      final location = tz.Location('LocalFallback', [tz.minTime], [0], [
+        tz.TimeZone(offset.inMilliseconds, isDst: false, abbreviation: abbreviation),
+      ]);
+      tz.setLocalLocation(location);
+      _timeZoneName = 'offset:${offset.inMinutes}';
+      // ignore: avoid_print
+      print('Fallback timezone applied (${_timeZoneName ?? 'unknown'}) | error: $error');
+    } catch (_) {
+      tz.setLocalLocation(tz.UTC);
+      _timeZoneName = 'UTC';
+      // ignore: avoid_print
+      print('Fallback timezone defaulted to UTC');
+    }
   }
 
   Future<void> openExactAlarmSettingsIfNeeded() async {
