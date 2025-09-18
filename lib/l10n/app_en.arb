@@ -46,7 +46,11 @@
   "yes": "Yes",
   "no": "No",
   "lastWatered": "Last watered",
+  "noWaterData": "No record yet",
   "nextWatering": "Next watering",
+  "registerWatering": "Log watering",
+  "wateringLogged": "Watering logged",
+
   "globallyPaused": "Paused"
   ,
   "undo": "Undo"
@@ -70,3 +74,5 @@
     }
   }
 }
+
+

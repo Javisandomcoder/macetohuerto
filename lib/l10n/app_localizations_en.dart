@@ -148,7 +148,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lastWatered => 'Last watered';
 
   @override
+  String get noWaterData => 'No record yet';
+
+  @override
   String get nextWatering => 'Next watering';
+
+  @override
+  String get registerWatering => 'Log watering';
+
+  @override
+  String get wateringLogged => 'Watering logged';
 
   @override
   String get globallyPaused => 'Paused';

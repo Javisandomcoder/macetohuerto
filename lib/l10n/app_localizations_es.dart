@@ -148,7 +148,16 @@ class AppLocalizationsEs extends AppLocalizations {
   String get lastWatered => 'Último riego';
 
   @override
+  String get noWaterData => 'Sin registro';
+
+  @override
   String get nextWatering => 'Próximo riego';
+
+  @override
+  String get registerWatering => 'Registrar riego';
+
+  @override
+  String get wateringLogged => 'Riego registrado';
 
   @override
   String get globallyPaused => 'En pausa';

@@ -46,7 +46,10 @@
   "yes": "Sí",
   "no": "No",
   "lastWatered": "Último riego",
+  "noWaterData": "Sin registro",
   "nextWatering": "Próximo riego",
+  "registerWatering": "Registrar riego",
+  "wateringLogged": "Riego registrado",
   "globallyPaused": "En pausa"
   ,
   "undo": "Deshacer"
@@ -70,3 +73,5 @@
     }
   }
 }
+
+

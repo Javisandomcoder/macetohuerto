@@ -374,11 +374,29 @@ abstract class AppLocalizations {
   /// **'Last watered'**
   String get lastWatered;
 
+  /// No description provided for @noWaterData.
+  ///
+  /// In en, this message translates to:
+  /// **'No record yet'**
+  String get noWaterData;
+
   /// No description provided for @nextWatering.
   ///
   /// In en, this message translates to:
   /// **'Next watering'**
   String get nextWatering;
+
+  /// No description provided for @registerWatering.
+  ///
+  /// In en, this message translates to:
+  /// **'Log watering'**
+  String get registerWatering;
+
+  /// No description provided for @wateringLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'Watering logged'**
+  String get wateringLogged;
 
   /// No description provided for @globallyPaused.
   ///
