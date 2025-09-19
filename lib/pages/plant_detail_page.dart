@@ -9,12 +9,19 @@ import 'plant_form_page.dart';
 import '../providers/plant_provider.dart';
 import 'package:flutter/services.dart';
 
-class PlantDetailPage extends ConsumerWidget {
+class PlantDetailPage extends ConsumerStatefulWidget {
   final Plant plant;
   const PlantDetailPage({super.key, required this.plant});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<PlantDetailPage> createState() => _PlantDetailPageState();
+}
+
+class _PlantDetailPageState extends ConsumerState<PlantDetailPage> {
+  bool _isDeleting = false;
+
+  @override
+  Widget build(BuildContext context) {
     final settings = ref.watch(settingsProvider);
     final l10n = AppLocalizations.of(context)!;
     final dateFmt = DateFormat('dd/MM/yyyy');
@@ -22,16 +29,17 @@ class PlantDetailPage extends ConsumerWidget {
 
     final plantsAsync = ref.watch(plantsProvider);
 
-    Plant currentPlant = plant;
+    var currentPlant = widget.plant;
 
     plantsAsync.maybeWhen(
       data: (plants) {
-        final idx = plants.indexWhere((p) => p.id == plant.id);
+        final idx = plants.indexWhere((p) => p.id == widget.plant.id);
         if (idx != -1) {
           currentPlant = plants[idx];
-        } else {
+        } else if (!_isDeleting) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (context.mounted && Navigator.canPop(context)) {
+            if (!mounted) return;
+            if (Navigator.canPop(context)) {
               Navigator.pop(context);
             }
           });
@@ -136,15 +144,18 @@ class PlantDetailPage extends ConsumerWidget {
                 ),
               );
               if (ok == true) {
+                if (!mounted) return;
+                setState(() {
+                  _isDeleting = true;
+                });
                 await ref.read(plantsProvider.notifier).remove(currentPlant.id);
                 await NotificationService().cancelForPlant(currentPlant);
-                if (context.mounted) {
-                  Navigator.pop(context, {
-                    'event': 'deleted',
-                    'name': currentPlant.name,
-                    'plant': currentPlant,
-                  });
-                }
+                if (!mounted) return;
+                Navigator.pop(context, {
+                  'event': 'deleted',
+                  'name': currentPlant.name,
+                  'plant': currentPlant,
+                });
               }
             },
           ),
