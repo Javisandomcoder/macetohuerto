@@ -1,4 +1,4 @@
-﻿name: macetohuerto
+name: macetohuerto
 description: "MVP controlador de macetohuerto (sin MQTT)"
 publish_to: "none"
 version: 0.1.0+1
@@ -25,8 +25,13 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.13.1
 
 flutter:
   uses-material-design: true
   generate: true
 
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: assets/icon/app_icon.png

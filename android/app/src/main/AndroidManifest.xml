@@ -6,7 +6,7 @@
     <!-- Allow rescheduling alarms after device reboot (optional but recommended) -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <application
-        android:label="maceto_huerto1"
+        android:label="MacetoApp"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

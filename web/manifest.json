@@ -1,6 +1,6 @@
 {
-    "name": "maceto_huerto1",
-    "short_name": "maceto_huerto1",
+    "name": "MacetoApp",
+    "short_name": "MacetoApp",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
