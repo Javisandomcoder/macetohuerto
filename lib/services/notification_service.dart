@@ -188,6 +188,7 @@ class NotificationService {
       priority: Priority.high,
       category: AndroidNotificationCategory.reminder,
       icon: '@mipmap/ic_launcher',
+      largeIcon: DrawableResourceAndroidBitmap('ic_launcher_foreground'),
     );
     const darwinDetails = DarwinNotificationDetails(
       presentAlert: true,
@@ -240,6 +241,7 @@ class NotificationService {
       priority: Priority.high,
       category: AndroidNotificationCategory.reminder,
       icon: '@mipmap/ic_launcher',
+      largeIcon: DrawableResourceAndroidBitmap('ic_launcher_foreground'),
     );
     const darwinDetails = DarwinNotificationDetails(
       presentAlert: true,
