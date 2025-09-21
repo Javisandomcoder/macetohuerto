@@ -41,7 +41,7 @@ class NotificationService {
     print("NotificationService timezone: ${_timeZoneName ?? 'unknown'}");
 
     // Platform init (Android + iOS/macOS)
-    const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidInit = AndroidInitializationSettings('@drawable/ic_notification');
     const darwinInit = DarwinInitializationSettings();
     const initSettings = InitializationSettings(
         android: androidInit, iOS: darwinInit, macOS: darwinInit);
@@ -180,21 +180,22 @@ class NotificationService {
     }
     // ignore: avoid_print
     print('Programando recordatorio para  -> , ahora: , tz: ');
-    const androidDetails = AndroidNotificationDetails(
+    final androidDetails = AndroidNotificationDetails(
       _channelId,
       _channelName,
       channelDescription: _channelDescription,
       importance: Importance.high,
       priority: Priority.high,
       category: AndroidNotificationCategory.reminder,
-      icon: '@mipmap/ic_launcher',
+      icon: '@drawable/ic_notification',
+      largeIcon: const DrawableResourceAndroidBitmap('ic_notification_large'),
     );
     const darwinDetails = DarwinNotificationDetails(
       presentAlert: true,
       presentSound: true,
       presentBadge: true,
     );
-    const details = NotificationDetails(
+    final details = NotificationDetails(
       android: androidDetails,
       iOS: darwinDetails,
       macOS: darwinDetails,
@@ -232,21 +233,22 @@ class NotificationService {
     print(
         'Programando test en ${when.toIso8601String()}, tz: ${_timeZoneName ?? 'desconocido'}');
 
-    const androidDetails = AndroidNotificationDetails(
+    final androidDetails = AndroidNotificationDetails(
       _channelId,
       _channelName,
       channelDescription: _channelDescription,
       importance: Importance.high,
       priority: Priority.high,
       category: AndroidNotificationCategory.reminder,
-      icon: '@mipmap/ic_launcher',
+      icon: '@drawable/ic_notification',
+      largeIcon: const DrawableResourceAndroidBitmap('ic_notification_large'),
     );
     const darwinDetails = DarwinNotificationDetails(
       presentAlert: true,
       presentSound: true,
       presentBadge: true,
     );
-    const details = NotificationDetails(
+    final details = NotificationDetails(
       android: androidDetails,
       iOS: darwinDetails,
       macOS: darwinDetails,
@@ -354,3 +356,6 @@ class NotificationService {
     }
   }
 }
+
+
+
