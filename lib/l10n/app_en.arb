@@ -1,6 +1,6 @@
 {
-  "appTitle": "Macetohuerto",
-  "homeTitle": "Macetohuerto",
+  "appTitle": "MacetoApp",
+  "homeTitle": "MacetoApp",
   "addPlant": "Add plant",
   "searchHint": "Search by name, species or location",
   "emptyList": "Add your first plant 🌱",
@@ -74,5 +74,6 @@
     }
   }
 }
+
 
 

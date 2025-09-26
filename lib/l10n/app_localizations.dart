@@ -101,13 +101,13 @@ abstract class AppLocalizations {
   /// No description provided for @appTitle.
   ///
   /// In en, this message translates to:
-  /// **'Macetohuerto'**
+  /// **'MacetoApp'**
   String get appTitle;
 
   /// No description provided for @homeTitle.
   ///
   /// In en, this message translates to:
-  /// **'Macetohuerto'**
+  /// **'MacetoApp'**
   String get homeTitle;
 
   /// No description provided for @addPlant.

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:macetohuerto/l10n/app_localizations.dart';
@@ -9,9 +9,15 @@ import 'theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await NotificationService().init();
-  // Solicita permisos de notificación al inicio para evitar silencios
-  await NotificationService().ensurePermissions();
+  final notificationService = NotificationService();
+  try {
+    await notificationService.init();
+    // Solicita permisos de notificación al inicio para evitar silencios
+    await notificationService.ensurePermissions();
+  } catch (error, stackTrace) {
+    debugPrint('Notification init failed: ' + error.toString());
+    debugPrintStack(stackTrace: stackTrace);
+  }
   runApp(const ProviderScope(child: MacetohuertoApp()));
 }
 
@@ -24,7 +30,7 @@ class MacetohuertoApp extends StatelessWidget {
     return Consumer(builder: (context, ref, _) {
       final themeMode = ref.watch(themeModeProvider);
       return MaterialApp(
-      title: 'Macetohuerto',
+      title: 'MacetoApp',
       onGenerateTitle: (ctx) => AppLocalizations.of(ctx)!.appTitle,
       theme: buildLightTheme(const Color(0xFF2E7D32)),
       darkTheme: buildDarkTheme(const Color(0xFF2E7D32)),
@@ -44,3 +50,4 @@ class MacetohuertoApp extends StatelessWidget {
     });
   }
 }
+

@@ -41,7 +41,7 @@ class NotificationService {
     print("NotificationService timezone: ${_timeZoneName ?? 'unknown'}");
 
     // Platform init (Android + iOS/macOS)
-    const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidInit = AndroidInitializationSettings('@drawable/ic_notification');
     const darwinInit = DarwinInitializationSettings();
     const initSettings = InitializationSettings(
         android: androidInit, iOS: darwinInit, macOS: darwinInit);
@@ -187,7 +187,7 @@ class NotificationService {
       importance: Importance.high,
       priority: Priority.high,
       category: AndroidNotificationCategory.reminder,
-      icon: '@mipmap/ic_launcher',
+      icon: '@drawable/ic_notification',
       largeIcon: DrawableResourceAndroidBitmap('ic_launcher_foreground'),
     );
     const darwinDetails = DarwinNotificationDetails(
@@ -240,7 +240,7 @@ class NotificationService {
       importance: Importance.high,
       priority: Priority.high,
       category: AndroidNotificationCategory.reminder,
-      icon: '@mipmap/ic_launcher',
+      icon: '@drawable/ic_notification',
       largeIcon: DrawableResourceAndroidBitmap('ic_launcher_foreground'),
     );
     const darwinDetails = DarwinNotificationDetails(
@@ -356,3 +356,5 @@ class NotificationService {
     }
   }
 }
+
+

@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -210,17 +212,25 @@ class _PlantFormPageState extends ConsumerState<PlantFormPage> {
                 // schedule/cancel
                 final settings = ref.read(settingsProvider);
                 final notifier = NotificationService();
-                if (plant.reminderEnabled &&
-                    !plant.reminderPaused &&
-                    !settings.remindersPaused) {
-                  await notifier.scheduleNextForPlant(
-                    plant: plant,
-                    globallyPaused: settings.remindersPaused,
-                    pausedUntil: settings.pausedUntil,
-                  );
-                } else {
-                  await notifier.cancelForPlant(plant);
-                }
+                unawaited(() async {
+                  try {
+                    if (plant.reminderEnabled &&
+                        !plant.reminderPaused &&
+                        !settings.remindersPaused) {
+                      await notifier.scheduleNextForPlant(
+                        plant: plant,
+                        globallyPaused: settings.remindersPaused,
+                        pausedUntil: settings.pausedUntil,
+                      );
+                    } else {
+                      await notifier.cancelForPlant(plant);
+                    }
+                  } catch (error, stackTrace) {
+                    debugPrint('Failed to update watering reminder: ' +
+                        error.toString());
+                    debugPrintStack(stackTrace: stackTrace);
+                  }
+                }());
                 if (context.mounted) {
                   Navigator.pop(context, {
                     'event': isEdit ? 'updated' : 'created',
