@@ -9,10 +9,10 @@ class AppLocalizationsEs extends AppLocalizations {
   AppLocalizationsEs([String locale = 'es']) : super(locale);
 
   @override
-  String get appTitle => 'Macetohuerto';
+  String get appTitle => 'MacetoApp';
 
   @override
-  String get homeTitle => 'Macetohuerto';
+  String get homeTitle => 'MacetoApp';
 
   @override
   String get addPlant => 'Añadir planta';
@@ -148,7 +148,16 @@ class AppLocalizationsEs extends AppLocalizations {
   String get lastWatered => 'Último riego';
 
   @override
+  String get noWaterData => 'Sin registro';
+
+  @override
   String get nextWatering => 'Próximo riego';
+
+  @override
+  String get registerWatering => 'Registrar riego';
+
+  @override
+  String get wateringLogged => 'Riego registrado';
 
   @override
   String get globallyPaused => 'En pausa';

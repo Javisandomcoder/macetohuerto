@@ -13,7 +13,8 @@ final searchQueryProvider = StateProvider<String>((ref) => '');
 /// Opciones de ordenación de la lista
 enum SortOption { nameAsc, nameDesc, dateDesc, dateAsc }
 
-final sortOptionProvider = StateProvider<SortOption>((ref) => SortOption.nameAsc);
+final sortOptionProvider =
+    StateProvider<SortOption>((ref) => SortOption.nameAsc);
 
 /// Filtro por ubicación (null o vacío = todas)
 final locationFilterProvider = StateProvider<String?>((ref) => null);
@@ -82,6 +83,18 @@ class PlantsNotifier extends StateNotifier<AsyncValue<List<Plant>>> {
     updated[idx] = plant;
     state = AsyncValue.data(updated);
     await repo.save(updated);
+  }
+
+  Future<Plant?> markWatered(String id, DateTime wateredAt) async {
+    final current = state.value ?? [];
+    final idx = current.indexWhere((p) => p.id == id);
+    if (idx == -1) return null;
+    final updated = [...current];
+    final updatedPlant = updated[idx].copyWith(lastWateredAt: wateredAt);
+    updated[idx] = updatedPlant;
+    state = AsyncValue.data(updated);
+    await repo.save(updated);
+    return updatedPlant;
   }
 
   Future<void> remove(String id) async {

@@ -101,13 +101,13 @@ abstract class AppLocalizations {
   /// No description provided for @appTitle.
   ///
   /// In en, this message translates to:
-  /// **'Macetohuerto'**
+  /// **'MacetoApp'**
   String get appTitle;
 
   /// No description provided for @homeTitle.
   ///
   /// In en, this message translates to:
-  /// **'Macetohuerto'**
+  /// **'MacetoApp'**
   String get homeTitle;
 
   /// No description provided for @addPlant.
@@ -374,11 +374,29 @@ abstract class AppLocalizations {
   /// **'Last watered'**
   String get lastWatered;
 
+  /// No description provided for @noWaterData.
+  ///
+  /// In en, this message translates to:
+  /// **'No record yet'**
+  String get noWaterData;
+
   /// No description provided for @nextWatering.
   ///
   /// In en, this message translates to:
   /// **'Next watering'**
   String get nextWatering;
+
+  /// No description provided for @registerWatering.
+  ///
+  /// In en, this message translates to:
+  /// **'Log watering'**
+  String get registerWatering;
+
+  /// No description provided for @wateringLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'Watering logged'**
+  String get wateringLogged;
 
   /// No description provided for @globallyPaused.
   ///

@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -77,7 +79,8 @@ class _PlantFormPageState extends ConsumerState<PlantFormPage> {
               textCapitalization: TextCapitalization.sentences,
               inputFormatters: const [CapitalizeFirstInputFormatter()],
               decoration: InputDecoration(labelText: l10n.nameLabel),
-              validator: (v) => (v == null || v.trim().isEmpty) ? l10n.required : null,
+              validator: (v) =>
+                  (v == null || v.trim().isEmpty) ? l10n.required : null,
             ),
             const SizedBox(height: 12),
             TextFormField(
@@ -127,7 +130,8 @@ class _PlantFormPageState extends ConsumerState<PlantFormPage> {
               maxLines: 3,
             ),
             const SizedBox(height: 24),
-            Text('Recordatorio de riego', style: Theme.of(context).textTheme.titleMedium),
+            Text('Recordatorio de riego',
+                style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
             SwitchListTile(
               value: _reminderEnabled,
@@ -140,18 +144,22 @@ class _PlantFormPageState extends ConsumerState<PlantFormPage> {
                   Expanded(
                     child: DropdownButtonFormField<int>(
                       initialValue: _intervalDays,
-                      decoration: const InputDecoration(labelText: 'Cada (días)'),
+                      decoration:
+                          const InputDecoration(labelText: 'Cada (días)'),
                       items: const [1, 2, 3, 4, 5, 7, 10, 14, 21, 30]
-                          .map((d) => DropdownMenuItem(value: d, child: Text('$d')))
+                          .map((d) =>
+                              DropdownMenuItem(value: d, child: Text('$d')))
                           .toList(),
-                      onChanged: (v) => setState(() => _intervalDays = v ?? _intervalDays),
+                      onChanged: (v) =>
+                          setState(() => _intervalDays = v ?? _intervalDays),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: InkWell(
                       onTap: () async {
-                        final picked = await showTimePicker(context: context, initialTime: _timeOfDay);
+                        final picked = await showTimePicker(
+                            context: context, initialTime: _timeOfDay);
                         if (picked != null) setState(() => _timeOfDay = picked);
                       },
                       child: InputDecorator(
@@ -178,16 +186,23 @@ class _PlantFormPageState extends ConsumerState<PlantFormPage> {
                 final plant = Plant(
                   id: id,
                   name: _nameCtrl.text.trim(),
-                  species: _speciesCtrl.text.trim().isEmpty ? null : _speciesCtrl.text.trim(),
-                  location: _locationCtrl.text.trim().isEmpty ? null : _locationCtrl.text.trim(),
+                  species: _speciesCtrl.text.trim().isEmpty
+                      ? null
+                      : _speciesCtrl.text.trim(),
+                  location: _locationCtrl.text.trim().isEmpty
+                      ? null
+                      : _locationCtrl.text.trim(),
                   plantedAt: _plantedAt,
-                  notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
+                  notes: _notesCtrl.text.trim().isEmpty
+                      ? null
+                      : _notesCtrl.text.trim(),
                   reminderEnabled: _reminderEnabled,
                   reminderPaused: _reminderPaused,
                   wateringIntervalDays: _reminderEnabled ? _intervalDays : null,
                   wateringTime: _reminderEnabled
                       ? '${_timeOfDay.hour.toString().padLeft(2, '0')}:${_timeOfDay.minute.toString().padLeft(2, '0')}'
                       : null,
+                  lastWateredAt: widget.initial?.lastWateredAt,
                 );
                 if (widget.initial == null) {
                   await ref.read(plantsProvider.notifier).add(plant);
@@ -197,15 +212,25 @@ class _PlantFormPageState extends ConsumerState<PlantFormPage> {
                 // schedule/cancel
                 final settings = ref.read(settingsProvider);
                 final notifier = NotificationService();
-                if (plant.reminderEnabled && !plant.reminderPaused && !settings.remindersPaused) {
-                  await notifier.scheduleNextForPlant(
-                    plant: plant,
-                    globallyPaused: settings.remindersPaused,
-                    pausedUntil: settings.pausedUntil,
-                  );
-                } else {
-                  await notifier.cancelForPlant(plant);
-                }
+                unawaited(() async {
+                  try {
+                    if (plant.reminderEnabled &&
+                        !plant.reminderPaused &&
+                        !settings.remindersPaused) {
+                      await notifier.scheduleNextForPlant(
+                        plant: plant,
+                        globallyPaused: settings.remindersPaused,
+                        pausedUntil: settings.pausedUntil,
+                      );
+                    } else {
+                      await notifier.cancelForPlant(plant);
+                    }
+                  } catch (error, stackTrace) {
+                    debugPrint('Failed to update watering reminder: ' +
+                        error.toString());
+                    debugPrintStack(stackTrace: stackTrace);
+                  }
+                }());
                 if (context.mounted) {
                   Navigator.pop(context, {
                     'event': isEdit ? 'updated' : 'created',
