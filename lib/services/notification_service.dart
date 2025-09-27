@@ -41,7 +41,7 @@ class NotificationService {
     print("NotificationService timezone: ${_timeZoneName ?? 'unknown'}");
 
     // Platform init (Android + iOS/macOS)
-    const androidInit = AndroidInitializationSettings('@drawable/ic_notification');
+    const androidInit = AndroidInitializationSettings('ic_notification');
     const darwinInit = DarwinInitializationSettings();
     const initSettings = InitializationSettings(
         android: androidInit, iOS: darwinInit, macOS: darwinInit);
@@ -84,19 +84,38 @@ class NotificationService {
     final android = _plugin.resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>();
     if (android != null) {
-      final bool? areEnabled = await android.areNotificationsEnabled();
-      bool enabled = areEnabled ?? true;
-      if (!enabled) {
-        final bool? granted = await android.requestNotificationsPermission();
-        enabled = granted ?? false;
+      bool enabled = false;
+      try {
+        enabled = await android.areNotificationsEnabled() ?? false;
+      } catch (_) {
+        enabled = false;
       }
+
+      if (!enabled) {
+        bool? granted;
+        try {
+          granted = await android.requestNotificationsPermission();
+        } catch (_) {
+          granted = null;
+        }
+        enabled = granted ?? enabled;
+
+        if (!enabled) {
+          // Allow the framework to refresh permission state before re-querying.
+          await Future.delayed(const Duration(milliseconds: 250));
+          try {
+            enabled = await android.areNotificationsEnabled() ?? enabled;
+          } catch (_) {}
+        }
+      }
+
       // Request exact alarms on Android 12+
       try {
         await android.requestExactAlarmsPermission();
       } catch (_) {}
+
       return enabled;
     }
-
     // iOS
     final ios = _plugin.resolvePlatformSpecificImplementation<
         IOSFlutterLocalNotificationsPlugin>();
@@ -187,7 +206,7 @@ class NotificationService {
       importance: Importance.high,
       priority: Priority.high,
       category: AndroidNotificationCategory.reminder,
-      icon: '@drawable/ic_notification',
+      icon: 'ic_notification',
     );
     const darwinDetails = DarwinNotificationDetails(
       presentAlert: true,
@@ -239,7 +258,7 @@ class NotificationService {
       importance: Importance.high,
       priority: Priority.high,
       category: AndroidNotificationCategory.reminder,
-      icon: '@drawable/ic_notification',
+      icon: 'ic_notification',
     );
     const darwinDetails = DarwinNotificationDetails(
       presentAlert: true,
@@ -354,6 +373,7 @@ class NotificationService {
     }
   }
 }
+
 
 
 
