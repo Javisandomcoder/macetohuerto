@@ -29,7 +29,7 @@ Macetohuerto es una aplicacion movil desarrollada en Flutter para gestionar de f
 flutter pub get
 flutter build apk --release --split-per-abi
 `
-Las APK generadas se guardaran en uild/app/outputs/flutter-apk/.
+Las APK generadas se guardaran en build/app/outputs/flutter-apk/.
 
 ## Contribuir
 Los issues y pull requests son bienvenidos en la rama development.
