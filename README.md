@@ -25,7 +25,7 @@ Macetohuerto es una aplicacion movil desarrollada en Flutter para gestionar de f
 > Tip: Si las notificaciones no suenan, comprueba en Ajustes > Aplicaciones > Macetohuerto > Notificaciones que esten activadas.
 
 ## Construir desde el codigo fuente
-`ash
+`bash
 flutter pub get
 flutter build apk --release --split-per-abi
 `
