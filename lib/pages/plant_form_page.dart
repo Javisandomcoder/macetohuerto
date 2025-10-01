@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,10 +7,15 @@ import 'package:intl/intl.dart';
 import 'package:macetohuerto/l10n/app_localizations.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
 import '../models/plant.dart';
+import '../models/care_log.dart';
 import '../providers/plant_provider.dart';
 import '../providers/settings_provider.dart';
 import '../services/notification_service.dart';
+import '../services/database_service.dart';
 import '../utils/input_formatters.dart';
 
 class PlantFormPage extends ConsumerStatefulWidget {
@@ -26,11 +32,13 @@ class _PlantFormPageState extends ConsumerState<PlantFormPage> {
   final _speciesCtrl = TextEditingController();
   final _locationCtrl = TextEditingController();
   final _notesCtrl = TextEditingController();
+  final _picker = ImagePicker();
   DateTime? _plantedAt;
   bool _reminderEnabled = false;
   bool _reminderPaused = false;
   int _intervalDays = 2;
   TimeOfDay _timeOfDay = const TimeOfDay(hour: 9, minute: 0);
+  XFile? _capturedImage;
 
   @override
   void initState() {
@@ -63,6 +71,68 @@ class _PlantFormPageState extends ConsumerState<PlantFormPage> {
     super.dispose();
   }
 
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final XFile? pickedFile = await _picker.pickImage(
+        source: source,
+        maxWidth: 1920,
+        maxHeight: 1920,
+        imageQuality: 85,
+      );
+
+      if (pickedFile != null) {
+        setState(() {
+          _capturedImage = pickedFile;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al capturar imagen: $e')),
+        );
+      }
+    }
+  }
+
+  void _showImageOptions() {
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('Tomar foto'),
+              onTap: () {
+                Navigator.pop(ctx);
+                _pickImage(ImageSource.camera);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Seleccionar de galería'),
+              onTap: () {
+                Navigator.pop(ctx);
+                _pickImage(ImageSource.gallery);
+              },
+            ),
+            if (_capturedImage != null)
+              ListTile(
+                leading: const Icon(Icons.delete_outline),
+                title: const Text('Eliminar foto'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  setState(() {
+                    _capturedImage = null;
+                  });
+                },
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isEdit = widget.initial != null;
@@ -74,6 +144,76 @@ class _PlantFormPageState extends ConsumerState<PlantFormPage> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
+            // Image preview/capture
+            Center(
+              child: GestureDetector(
+                onTap: _showImageOptions,
+                child: Container(
+                  width: 200,
+                  height: 200,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5),
+                      width: 2,
+                    ),
+                  ),
+                  child: _capturedImage != null
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              Image.file(
+                                File(_capturedImage!.path),
+                                fit: BoxFit.cover,
+                              ),
+                              Positioned(
+                                top: 8,
+                                right: 8,
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black54,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.edit,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      : Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.add_a_photo,
+                              size: 48,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Añadir foto',
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    color: Theme.of(context).colorScheme.primary,
+                                  ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '(Opcional)',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ],
+                        ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
             TextFormField(
               controller: _nameCtrl,
               textCapitalization: TextCapitalization.sentences,
@@ -209,6 +349,33 @@ class _PlantFormPageState extends ConsumerState<PlantFormPage> {
                 } else {
                   await ref.read(plantsProvider.notifier).update(plant);
                 }
+
+                // Save captured image if exists
+                if (_capturedImage != null) {
+                  try {
+                    final appDir = await getApplicationDocumentsDirectory();
+                    final imagesDir = Directory(path.join(appDir.path, 'plant_images'));
+                    if (!await imagesDir.exists()) {
+                      await imagesDir.create(recursive: true);
+                    }
+
+                    final fileName = '${const Uuid().v4()}${path.extension(_capturedImage!.path)}';
+                    final savedPath = path.join(imagesDir.path, fileName);
+                    await File(_capturedImage!.path).copy(savedPath);
+
+                    // Save to database
+                    final image = PlantImage(
+                      plantId: plant.id,
+                      imagePath: savedPath,
+                      takenAt: DateTime.now(),
+                    );
+
+                    await DatabaseService().insertPlantImage(image);
+                  } catch (e) {
+                    debugPrint('Failed to save plant image: $e');
+                  }
+                }
+
                 // schedule/cancel
                 final settings = ref.read(settingsProvider);
                 final notifier = NotificationService();
@@ -221,6 +388,7 @@ class _PlantFormPageState extends ConsumerState<PlantFormPage> {
                         plant: plant,
                         globallyPaused: settings.remindersPaused,
                         pausedUntil: settings.pausedUntil,
+                        seasonMultiplier: settings.seasonMode.multiplier,
                       );
                     } else {
                       await notifier.cancelForPlant(plant);

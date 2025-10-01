@@ -71,7 +71,8 @@
     "placeholders": {
       "name": {}
     }
-  }
+  },
+  "needsWaterSoon": "Regar pronto"
 }
 
 

@@ -5,7 +5,10 @@ import 'package:macetohuerto/l10n/app_localizations.dart';
 import '../services/notification_service.dart';
 import '../providers/settings_provider.dart';
 import '../models/plant.dart';
+import '../utils/watering_calculator.dart';
 import 'plant_form_page.dart';
+import 'plant_gallery_page.dart';
+import 'care_history_page.dart';
 import '../providers/plant_provider.dart';
 import 'package:flutter/services.dart';
 
@@ -48,31 +51,8 @@ class _PlantDetailPageState extends ConsumerState<PlantDetailPage> {
       orElse: () {},
     );
 
-    DateTime? computeNext() {
-      if (!currentPlant.reminderEnabled ||
-          currentPlant.wateringIntervalDays == null ||
-          currentPlant.wateringTime == null) {
-        return null;
-      }
-      final parts = currentPlant.wateringTime!.split(':');
-      final hh = int.tryParse(parts[0]) ?? 9;
-      final mm = int.tryParse(parts[1]) ?? 0;
-      final now = DateTime.now();
-      DateTime baseline =
-          currentPlant.lastWateredAt ?? currentPlant.plantedAt ?? now;
-      baseline = DateTime(baseline.year, baseline.month, baseline.day);
-      final interval = currentPlant.wateringIntervalDays!;
-      DateTime next =
-          DateTime(baseline.year, baseline.month, baseline.day, hh, mm);
-      while (!next.isAfter(now)) {
-        baseline = baseline.add(Duration(days: interval));
-        next = DateTime(baseline.year, baseline.month, baseline.day, hh, mm);
-        if (interval <= 0) break;
-      }
-      return next;
-    }
-
-    final nextWatering = computeNext();
+    final seasonMultiplier = settings.seasonMode.multiplier;
+    final nextWatering = calculateNextWatering(currentPlant, seasonMultiplier: seasonMultiplier);
 
     return Scaffold(
       appBar: AppBar(
@@ -83,6 +63,28 @@ class _PlantDetailPageState extends ConsumerState<PlantDetailPage> {
           child: Text(currentPlant.name),
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.history),
+            tooltip: 'Historial de cuidados',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => CareHistoryPage(plant: currentPlant),
+                ),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.photo_library_outlined),
+            tooltip: 'Galería de fotos',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => PlantGalleryPage(plant: currentPlant),
+                ),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.edit),
             onPressed: () async {
@@ -183,8 +185,15 @@ class _PlantDetailPageState extends ConsumerState<PlantDetailPage> {
           const SizedBox(height: 8),
           _tile(context, l10n.reminder,
               currentPlant.reminderEnabled ? l10n.enabled : l10n.disabled),
-          _tile(context, l10n.intervalDays,
-              currentPlant.wateringIntervalDays?.toString() ?? '-'),
+          _tile(
+            context,
+            l10n.intervalDays,
+            currentPlant.wateringIntervalDays != null
+                ? settings.seasonMode == SeasonMode.winter
+                    ? '${currentPlant.wateringIntervalDays} días (${(currentPlant.wateringIntervalDays! * 1.5).round()} días en invierno)'
+                    : '${currentPlant.wateringIntervalDays} días'
+                : '-',
+          ),
           _tile(context, l10n.time, currentPlant.wateringTime ?? '-'),
           _tile(
             context,

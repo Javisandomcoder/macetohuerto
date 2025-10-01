@@ -15,7 +15,7 @@ Future<void> main() async {
     // Solicita permisos de notificación al inicio para evitar silencios
     await notificationService.ensurePermissions();
   } catch (error, stackTrace) {
-    debugPrint('Notification init failed: ' + error.toString());
+    debugPrint('Notification init failed: $error');
     debugPrintStack(stackTrace: stackTrace);
   }
   runApp(const ProviderScope(child: MacetohuertoApp()));

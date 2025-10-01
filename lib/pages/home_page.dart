@@ -9,9 +9,12 @@ import '../providers/settings_provider.dart';
 import '../services/notification_service.dart';
 import '../utils/transitions.dart';
 import '../widgets/plant_card.dart';
+import '../widgets/plant_grid_item.dart';
 import '../providers/notification_provider.dart';
 import 'plant_detail_page.dart';
 import 'plant_form_page.dart';
+import 'stats_page.dart';
+import 'settings_page.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -24,6 +27,7 @@ class HomePage extends ConsumerWidget {
     final locationFilter = ref.watch(locationFilterProvider);
     final speciesFilter = ref.watch(speciesFilterProvider);
     final settings = ref.watch(settingsProvider);
+    final viewMode = ref.watch(viewModeProvider);
     final l10n = AppLocalizations.of(context)!;
 
     final notificationService = NotificationService();
@@ -39,6 +43,7 @@ class HomePage extends ConsumerWidget {
           plant: plant,
           globallyPaused: settingsSnapshot.remindersPaused,
           pausedUntil: settingsSnapshot.pausedUntil,
+          seasonMultiplier: settingsSnapshot.seasonMode.multiplier,
         );
       }
       unawaited(future.catchError((_) {}));
@@ -119,6 +124,53 @@ class HomePage extends ConsumerWidget {
       appBar: AppBar(
         title: Text(l10n.homeTitle),
         actions: [
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert),
+            onSelected: (value) {
+              switch (value) {
+                case 'stats':
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (context) => const StatsPage()),
+                  );
+                  break;
+                case 'settings':
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (context) => const SettingsPage()),
+                  );
+                  break;
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'stats',
+                child: Row(
+                  children: [
+                    Icon(Icons.bar_chart),
+                    SizedBox(width: 12),
+                    Text('Estadísticas'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'settings',
+                child: Row(
+                  children: [
+                    Icon(Icons.settings),
+                    SizedBox(width: 12),
+                    Text('Configuración'),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          IconButton(
+            tooltip: viewMode == ViewMode.list ? 'Vista cuadrícula' : 'Vista lista',
+            onPressed: () {
+              ref.read(viewModeProvider.notifier).state =
+                  viewMode == ViewMode.list ? ViewMode.grid : ViewMode.list;
+            },
+            icon: Icon(viewMode == ViewMode.list ? Icons.grid_view : Icons.view_list),
+          ),
           IconButton(
             tooltip: l10n.themeToggleTooltip,
             onPressed: () => ref.read(themeModeProvider.notifier).toggle(),
@@ -357,15 +409,32 @@ class HomePage extends ConsumerWidget {
                         duration: const Duration(milliseconds: 250),
                         switchInCurve: Curves.easeOutCubic,
                         switchOutCurve: Curves.easeInCubic,
-                        child: ListView.builder(
-                          key: ValueKey(filtered.map((e) => e.id).join(',')),
-                          itemCount: filtered.length,
-                          itemBuilder: (context, index) => PlantCard(
-                            key: ValueKey(filtered[index].id),
-                            plant: filtered[index],
-                            rootScaffoldContext: context,
-                          ),
-                        ),
+                        child: viewMode == ViewMode.list
+                            ? ListView.builder(
+                                key: const ValueKey('list'),
+                                itemCount: filtered.length,
+                                itemBuilder: (context, index) => PlantCard(
+                                  key: ValueKey(filtered[index].id),
+                                  plant: filtered[index],
+                                  rootScaffoldContext: context,
+                                ),
+                              )
+                            : GridView.builder(
+                                key: const ValueKey('grid'),
+                                padding: const EdgeInsets.all(8),
+                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 2,
+                                  crossAxisSpacing: 8,
+                                  mainAxisSpacing: 8,
+                                  childAspectRatio: 0.8,
+                                ),
+                                itemCount: filtered.length,
+                                itemBuilder: (context, index) => PlantGridItem(
+                                  key: ValueKey(filtered[index].id),
+                                  plant: filtered[index],
+                                  rootScaffoldContext: context,
+                                ),
+                              ),
                       ),
                     ),
                 ],

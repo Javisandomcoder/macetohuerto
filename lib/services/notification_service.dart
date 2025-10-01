@@ -164,6 +164,7 @@ class NotificationService {
     required Plant plant,
     required bool globallyPaused,
     DateTime? pausedUntil,
+    double seasonMultiplier = 1.0,
   }) async {
     if (!_initialized) await init();
     final allowed = await ensurePermissions();
@@ -178,7 +179,9 @@ class NotificationService {
       return;
     }
 
-    final interval = max(1, plant.wateringIntervalDays ?? 2);
+    // Aplicar multiplicador estacional
+    final baseInterval = plant.wateringIntervalDays ?? 2;
+    final interval = max(1, (baseInterval * seasonMultiplier).round());
     final timeStr = plant.wateringTime ?? '09:00';
     final parts = timeStr.split(':');
     final hh = int.tryParse(parts[0]) ?? 9;
@@ -189,13 +192,21 @@ class NotificationService {
     final effectiveBase =
         baseSource != null ? tz.TZDateTime.from(baseSource, tz.local) : now;
 
-    var nextDt = tz.TZDateTime(tz.local, effectiveBase.year,
-        effectiveBase.month, effectiveBase.day, hh, mm);
-    if (!nextDt.isAfter(effectiveBase)) {
-      nextDt = nextDt.add(Duration(days: interval));
-    }
-    while (!nextDt.isAfter(now)) {
-      nextDt = nextDt.add(Duration(days: interval));
+    // Calcular próxima fecha: base + intervalo completo, a la hora configurada
+    final targetDate = effectiveBase.add(Duration(days: interval));
+    var nextDt = tz.TZDateTime(tz.local, targetDate.year, targetDate.month, targetDate.day, hh, mm);
+
+    // Si ya pasó (casos edge como cambio de intervalo), calcular próximo intervalo
+    if (!nextDt.isAfter(now)) {
+      final daysSinceBase = now.difference(effectiveBase).inDays;
+      final intervalsPassed = (daysSinceBase / interval).ceil();
+      final correctedDate = effectiveBase.add(Duration(days: interval * intervalsPassed));
+      nextDt = tz.TZDateTime(tz.local, correctedDate.year, correctedDate.month, correctedDate.day, hh, mm);
+
+      // Asegurar que está en el futuro
+      while (!nextDt.isAfter(now)) {
+        nextDt = nextDt.add(Duration(days: interval));
+      }
     }
     // ignore: avoid_print
     print('Programando recordatorio para  -> , ahora: , tz: ');

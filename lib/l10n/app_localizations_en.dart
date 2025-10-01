@@ -179,4 +179,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String plantUpdatedWithName(Object name) {
     return 'Changes saved for \"$name\"';
   }
+
+  @override
+  String get needsWaterSoon => 'Water soon';
 }

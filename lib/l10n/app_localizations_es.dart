@@ -179,4 +179,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String plantUpdatedWithName(Object name) {
     return 'Cambios guardados en \"$name\"';
   }
+
+  @override
+  String get needsWaterSoon => 'Regar pronto';
 }

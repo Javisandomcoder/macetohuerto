@@ -427,6 +427,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Changes saved for \"{name}\"'**
   String plantUpdatedWithName(Object name);
+
+  /// No description provided for @needsWaterSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Water soon'**
+  String get needsWaterSoon;
 }
 
 class _AppLocalizationsDelegate
